@@ -1,0 +1,68 @@
+%%case with 2 Ags
+n_founders = 3;
+rep = 9;
+n_max_Bcells = n_founders*2^rep;
+n_cycle_max = 150;
+a_act = 10;
+a_threshold = 20;
+a_min = -6;
+
+p_mut = 10^(-3); %per base pair per division.
+p_CDR = 0.3;
+p_FR_lethal = 0.9;
+p_recycle = 0.8;
+t_cell_selection = 0.3;
+
+founders = rand(n_founders,1);
+b_cells = zeros(2, n_max_Bcells);
+
+%%INITIALIZATION + proliferation: 
+%% each founder needs to meet a_act for one Ag
+for f = 1:n_founders
+    f_start = (f-1)*2^rep+1;
+    if founders(f,1) < 0.5
+        %in case of 2 Ags if <0.5 then meets activation for Ag_1
+        for b = f_start:f_start+2^rep-1
+            b_cells(1,b) = a_act;
+            b_cells(2,b) = a_min + (a_act - a_min)*rand;
+        end
+    else
+        for b = f_start:f_start+2^rep-1
+            b_cells(2,b) = a_act;
+            b_cells(1,b) = a_min + (a_act - a_min)*rand;
+        end
+    end
+end
+cycle_number = 0;
+disp(['CYCLE NUMBER ' num2str(cycle_number)]);
+
+%%%%% TO DO, for the same founders
+%%GC REACTION:
+%% the founders seed the GC and undergo AM. GC_cycle modifies b_cells and adds the new plasma cells. In this toy model, exit_cells designed the cells that exit the GC at the end of a cycle (memory + plasma cells).
+new_exit_cells = zeros(2, floor(n_max_Bcells/5));
+exit_cells = zeros(n_cycle_max, 2, floor(n_max_Bcells/4));
+number_recycled_b_cells = zeros(1, n_cycle_max);
+
+while 1
+    cycle_number = cycle_number +1;
+    [new_exit_cells, b_cells] = GC_cycle(b_cells, a_act, a_threshold, p_mut, p_CDR, p_FR_lethal, p_recycle, t_cell_selection);
+    disp(['number of b cells after recycle ' num2str(length(b_cells))]);
+    number_recycled_b_cells(1,cycle_number) = length(b_cells);
+    
+    disp(['after GC cycle ' num2str(cycle_number), ' : number of b cells ' num2str(length(b_cells))]);
+    for l = 1:size(new_exit_cells,2)
+        exit_cells(cycle_number, :, l) = new_exit_cells(:,l);
+    end
+    if cycle_number > n_cycle_max || length(b_cells) > n_max_Bcells || isempty(b_cells)
+        break
+    end
+end
+
+% while cycle_number < n_cycle_max && length(b_cells) < 2*n_max_Bcells && ~isempty(b_cells)
+%     new_exit_cells = GC_cycle(b_cells, a_act, a_threshold, p_mut, p_CDR, p_FR_lethal, p_recycle, t_cell_selection);
+%     for l = 1:length(new_exit_cells)
+%         exit_cells(cycle_number, :, l) = new_exit_cells(:,l);
+%     end
+%     cycle_number = cycle_number +1;
+% end
+
