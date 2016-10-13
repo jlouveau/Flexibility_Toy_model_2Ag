@@ -1,5 +1,5 @@
 clear all;
-%close all;
+close all;
 clc;
 
 %%case with 2 Ags
@@ -7,16 +7,16 @@ n_Ag = 2;
 n_founders = 3;
 rep = 9;
 n_max_Bcells = n_founders*2^rep;
-n_cycle_max = 100;
-n_trial_max = 1000;
+n_cycle_max = 200;
+n_trial_max = 50;
 a_act = 10;
-a_threshold = 20;
-a_min = -6;
-conc = 1.5;
+a_threshold = 15;
+a_min = 9;
+conc = 1;
 
 p_mut = 0.2; % per division.
 p_CDR = 0.3;
-p_FR_lethal = 0.9;
+p_FR_lethal = 0.5;
 p_recycle = 0.85;
 t_cell_selection = 0.6;
 
@@ -108,7 +108,7 @@ toc;
 %% Analyze trials
 %pop_over_time = analysis(number_recycled_b_cells, n_trial_max, p_mut, p_recycle, t_cell_selection);
 %[pop_time, breadth, number_exit_cells_mean, neutralized] = analysis( number_recycled_b_cells, number_exit_cells, exit_cells, n_trial_max, a_act, n_cycle_max, p_mut, p_recycle, t_cell_selection );
-[ pop_time, total_exit_cells, neutralized, breadth ] = analysis( number_recycled_b_cells, number_exit_cells, exit_cells, n_trial_max, a_act, n_cycle_max, p_mut, p_recycle, t_cell_selection, conc);
+[ pop_time, total_exit_cells, neutralized, breadth ] = analysis( number_recycled_b_cells, number_exit_cells, exit_cells, n_trial_max, a_act, n_cycle_max, p_mut, p_recycle, t_cell_selection, conc, p_CDR);
 
 
 

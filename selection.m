@@ -1,52 +1,24 @@
 function [ b_cells_trial ] = selection( b_cells_trial, conc, a_act, t_cell_selection) 
-% b_cells with affinity higher than a_act can try to internalize the Ag. 
+% b_cells see one antigen per cycle. 
 % the probability to internalize the Ag is of a langmuir form. Among these
 % successful b_cells, only the best ones are selected by T cells.
+% Amongs these B cells that are selected, only those that have affinity for
+% the specific antigen above a_act are actually allowed to survive because
+% the division rate depends on the affinity. 
 % b_cells_trial = zeros(1, n_Ag, n_max_Bcells);
-
-% b_cells_trial = b_cells_trial(:,:, b_cells_trial(1,1,:) >= a_act | b_cells_trial(1,2,:) >= a_act );%remove b_cells with affinity for both Ag below a_act
-
 
 %disp(['number of b cells after selection by threshold ' num2str(length(b_cells))]);
 
 conc_Ag = double(conc/size(b_cells_trial,2));
 dominant_Ag = zeros(1,size(b_cells_trial,3));
 
-
-% %disp(['selection line 24 ' num2str(size(b_cells_trial))]);
-% for n = 1:size(b_cells_trial,3)
-%     randoom = rand;
-%     sum = 0;
-%     for i = 1:size(b_cells_trial,2) % sum the fraction of occupied sites over the Ags
-%         sum = sum + double(conc_Ag*b_cells_trial(1,i,n)/a_act);
-%     end
-%     langmuir = double(sum/(1+ sum));
-%     if randoom >= langmuir
-%         %b_cell didn't internalize the Ags, so it dies
-% %         randoom
-% %         langmuir
-% %         disp(['Ag 1 ' num2str(b_cells_trial(1,1,n)) 'Ag 2 ' num2str(b_cells_trial(1,2,n))]);
-%         b_cells_trial(1,:,n) = [NaN NaN];
-%     end
-% end
-% %disp(['selection line 35 ' num2str(size(b_cells_trial))]);
-% %remove the b_cells that failed to internalize the Ag
-% b_cells_trial = b_cells_trial(:, :, isnan(b_cells_trial(1,1,:)) < 1); 
-% %disp(['selection line 37 ' num2str(size(b_cells_trial))]); 
-% 
-% b_cells_trial = b_cells_trial(:,:, b_cells_trial(1,1,:) >= a_act | b_cells_trial(1,2,:) >= a_act );%remove b_cells with affinity for both Ag below a_act
-% 
-% %sort the b_cells by increasing value, only the ones at the end are
-% %selected!
-% [sorted_b_cells, indexes] = sort(b_cells_trial, 'descend');
-% n_selected = floor(t_cell_selection*size(b_cells_trial,3));
-% b_cells_trial = sorted_b_cells(:,:,1:n_selected);
-% %disp(['number of b cells after selection of best performing ' num2str(size(b_cells_trial))]);
-% 
-% end
-
-
-%% Selection case where each b cell sees one antigen per cycle
+%% Internalization of antigen: case where each b cell sees one antigen per cycle
+%first step 
+%is to pick the antigen that the b cell sees for each b cell it
+%will be stored in dominant_Ag
+%second step 
+%is to stochastically choose which b cells survive using the
+%langmuir probability with the affinity for the dominant_Ag
 
 for n = 1:size(b_cells_trial,3)
     rand_Ag = rand;
@@ -57,44 +29,58 @@ for n = 1:size(b_cells_trial,3)
         index_Ag = 2;
     end
     dominant_Ag(1,n) = index_Ag;
+
     langmuir = conc_Ag*b_cells_trial(1,index_Ag,n)/(a_act + conc_Ag*b_cells_trial(1,index_Ag,n));
     
     if proba >= langmuir
         %b_cell didn't internalize the Ag, so it dies
         b_cells_trial(1,:,n) = [NaN NaN];
-    end
+    end 
 end
-%remove the b_cells that failed to internalize the Ag
-b_cells_trial = b_cells_trial(:, :, isnan(b_cells_trial(1,1,:)) < 1);      
-%disp([' l69 ' num2str(size(b_cells_trial,3))]);
 
-%% sort the b_cells by increasing value of the affinity for the antigen seen
+%remove the b_cells that failed to internalize the Ag
+b_cells_trial = b_cells_trial(:, :, isnan(b_cells_trial(1,1,:)) < 1);  
+
+
+%% T cell selection: 
+%first step is
+%to sort the b_cells by increasing value of the affinity for the antigen
+%seen. 
+%second step is 
+%to select the top performing b cells.
+%third step is 
+%to remove from this selection the b cells with affinity
+%below a_act since they won't be allowed to divide.
+
+% Notice that all three steps are done on the internalized_b_cells matrix
+% which contains the affinities for the dominant_Ag only
+
 internalized_b_cells = zeros(1,1,size(b_cells_trial,3));
 
 for n = 1:size(b_cells_trial,3)
     internalized_b_cells(1,:,n) = b_cells_trial(1, dominant_Ag(1,n),n);
 end
 
-% b_cells_trial = b_cells_trial(:, :, internalized_b_cells(:) >= a_act );
-% disp([' l80 ' num2str(size(b_cells_trial,3))]);
-
+%step 1
 [sorted_internalized_b_cells, indexes] = sort(internalized_b_cells, 3, 'descend'); %%%%%%%%%%%%%%%%%%
 
-% sorted_b_cells = b_cells_trial(:,:,id);
-n_selected = floor(t_cell_selection*size(b_cells_trial,3));
+%step 2
+n_selected = floor(t_cell_selection*size(internalized_b_cells,3));
+selected_internalized_b_cells = zeros(1,1,n_selected);
 sorted_b_cells = zeros(1,size(b_cells_trial,2), n_selected);
-id = indexes(1,1,1:n_selected);
 
-% for n = 1:length(id)
-%     sorted_b_cells(:,:,n) = b_cells_trial(:,:, id(n,1));
-% end
-	
-%for i = 1:size(b_cells_trial,2)
-    for j = 1:n_selected   
-        sorted_b_cells(:,:,j) = b_cells_trial(1,:, id(1,1,j));
+for j = 1:n_selected
+    selected_internalized_b_cells(1,1,j) = sorted_internalized_b_cells(1,1,j);
+    sorted_b_cells(:,:,j) = b_cells_trial(1,:, indexes(1,1,j));
+end
+
+%step 3
+for j = 1:n_selected   
+    if selected_internalized_b_cells(1,1,j) < a_act
+        sorted_b_cells(1,:,j) = [NaN NaN];
     end
-%end
-
+end   
 b_cells_trial = sorted_b_cells;
+b_cells_trial = b_cells_trial(:, :, isnan(b_cells_trial(1,1,:)) < 1); 
 
 end

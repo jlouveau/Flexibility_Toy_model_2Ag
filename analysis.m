@@ -7,7 +7,7 @@ pop_time = mean(number_recycled_b_cells,1);
 
 figure(); plot(pop_time);
 %title({['Population of GC b cells over time for 2 Ags with mutations only in the CDR']; ['averaged over ', num2str(n_trial_max), ' trials']; [' with proba recycle = ' num2str(p_recycle) ', proba mutation = ' num2str(p_mut) ', concentration = ' num2str(conc) ' and t cell selection rate = ' num2str(t_cell_selection)]});
-title({['Population of GC b cells over time for 2 Ags with mutations only in the CDR']; ['averaged over ', num2str(n_trial_max), ' trials and conc = ' num2str(conc)]});
+title({['Population of GC b cells for 2 Ags']; ['averaged over ' num2str(n_trial_max) ' trials and conc = ' num2str(conc) ' proba CDR = ' num2str(p_CDR)]});
 xlabel('Number of cycles', 'Fontweight', 'bold');
 set(gca,'FontSize',6);
 
@@ -15,7 +15,7 @@ figure();
 for i = 1:n_trial_max
     plot(number_recycled_b_cells(i,:)); hold on;
 end
-title({['Population of GC b cells over time for 2 Ags with mutations only in the CDR']; [' conc = ' num2str(conc)]}, 'Fontweight', 'bold');
+title({['Population of GC b cells for 2 Ags']; [' conc = ' num2str(conc) ' proba CDR = ' num2str(p_CDR)]}, 'Fontweight', 'bold');
 xlabel('Number of cycles', 'Fontweight', 'bold');
 set(gca,'FontSize',6);
 
@@ -33,7 +33,7 @@ for t = 1:length(thresholds)
     for i = 1:size(exit_cells,1) %trial
         for j = 1:size(exit_cells,2) %cycle
             for k = 1:size(exit_cells,4) %bcell index
-                   if (exit_cells(i,j,1,k) > thresholds(t) && exit_cells(i,j,2,k) > thresholds(t))
+                   if (exit_cells(i,j,1,k) >= thresholds(t) && exit_cells(i,j,2,k) >= thresholds(t))
                         neutralized(i,j,t) = neutralized(i,j,t) +1;
                    end
             end
@@ -45,16 +45,15 @@ neutralized_mean = mean(neutralized,1);
 
 figure();
 plot(total_exit_cells);
-title('Number exit cells', 'Fontweight', 'bold');
+title({['Number exit cells for 2 Ags']; ['averaged over ' num2str(n_trial_max) ' trials and conc = ' num2str(conc) ' proba CDR = ' num2str(p_CDR)]}, 'Fontweight', 'bold');
 xlabel('Number of cycles', 'Fontweight', 'bold');
 set(gca,'FontSize',6);
-%title({['Number of b cells that exit the GC over time for a single antigen with mutations only in the CDR'];  ['averaged over ', num2str(n_trial_max), ' trials']; [' with proba recycle = ', num2str(p_recycle) ', proba mutation = ' num2str(p_mut) ' and t cell selection rate = ' num2str(t_cell_selection)]});
 
 figure();
 for t = 1:length(thresholds)
     plot(neutralized_mean(:,:,t)); hold on;
 end
-title('Neutralized', 'Fontweight', 'bold');
+title({['Neutralized for 2 Ags']; ['averaged over ' num2str(n_trial_max) ' trials and conc = ' num2str(conc) ' proba CDR = ' num2str(p_CDR)]}, 'Fontweight', 'bold');
 xlabel('Number of cycles', 'Fontweight', 'bold');
 set(gca,'FontSize',6);
 legendCell = strcat(strtrim(cellstr(num2str(thresholds(:)))));
@@ -75,7 +74,7 @@ figure();
 for t = 1:length(thresholds)
     plot(breadth(:,t)); hold on;
 end
-title('Breadth', 'Fontweight', 'bold')
+title({['Breadth for 2 Ags']; ['averaged over ' num2str(n_trial_max) ' trials and conc = ' num2str(conc) ' proba CDR = ' num2str(p_CDR)]}, 'Fontweight', 'bold')
 xlabel('Number of cycles', 'Fontweight', 'bold');
 set(gca,'FontSize',6);
 legend(legendCell, 'fontsize',6, 'Position', [0.75,0.65,0.15,0.25]);

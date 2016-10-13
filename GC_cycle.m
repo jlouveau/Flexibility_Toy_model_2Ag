@@ -19,7 +19,7 @@ b_cells_trial = division_and_mutation(daughters1, a_act, a_threshold, p_mut, p_C
 b_cells_trial = selection(b_cells_trial, conc, a_act, t_cell_selection);
 
 %%RECYCLE
-%% randomly pick exit_cells for the selected b_cells.
+%% randomly pick exit_cells from the selected b_cells.
 n_selected = floor(t_cell_selection*size(b_cells_trial,3));
 
 n_exit = floor((1 - p_recycle)*n_selected);
